@@ -1,0 +1,312 @@
+MPASM 5.75  /HOME/ANDREW/MPLABXPROJECTS/LAB6   10-19-2017  20:13:51         PAGE  1
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00001 ;**********************************************************************
+                      00002 ;                                                                     *
+                      00003 ;   This file is a basic code template for assembly code generation   *
+                      00004 ;   on the PIC16F84A. This file contains the basic code               *
+                      00005 ;   building blocks to build upon.                                    *
+                      00006 ;                                                                     *
+                      00007 ;   Refer to the MPASM User's Guide for additional information on     *
+                      00008 ;   features of the assembler (Document DS33014).                     *
+                      00009 ;                                                                     *
+                      00010 ;   Refer to the respective PIC data sheet for additional             *
+                      00011 ;   information on the instruction set.                               *
+                      00012 ;                                                                     *
+                      00013 ;**********************************************************************
+                      00014 ;                                                                     *
+                      00015 ;    Filename:        GreyCodeCounter.asm                             *
+                      00016 ;    Date:            10-11-17  rev. 10-13-17                         *
+                      00017 ;    File Version:    0.0.1                                           *
+                      00018 ;                                                                     *
+                      00019 ;    Author:          Andrew W. Harn                                  *
+                      00020 ;    Company:         Geneva College                                  *
+                      00021 ;                                                                     *
+                      00022 ;                                                                     *
+                      00023 ;**********************************************************************
+                      00024 ;                                                                     *
+                      00025 ;    Files required: P16F84A.INC                                      *
+                      00026 ;                                                                     *
+                      00027 ;                                                                     *
+                      00028 ;                                                                     *
+                      00029 ;**********************************************************************
+                      00030 ;                                                                     *
+                      00031 ;    Notes:                                                           *
+                      00032 ;                                                                     *
+                      00033 ;                                                                     *
+                      00034 ;                                                                     *
+                      00035 ;                                                                     *
+                      00036 ;**********************************************************************
+                      00037 
+                      00038 
+                      00039     list      p=16F84A             ; list directive to define processor
+                      00040     #include "p16f84a.inc"         ; processor specific variable definitions
+                      00001         LIST
+                      00002 
+                      00003 ;==========================================================================
+                      00004 ; Build date : Jul 02 2017
+                      00005 ;  MPASM PIC16F84A processor include
+                      00006 ; 
+                      00007 ;  (c) Copyright 1999-2017 Microchip Technology, All rights reserved
+                      00008 ;==========================================================================
+                      00009 
+                      00209         LIST
+                      00041 
+2007   3FF3           00042     __CONFIG   _CP_OFF & _WDT_OFF & _PWRTE_ON & _RC_OSC
+                      00043 
+MPASM 5.75  /HOME/ANDREW/MPLABXPROJECTS/LAB6   10-19-2017  20:13:51         PAGE  2
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00044 ; '__CONFIG' directive is used to embed configuration data within .asm file.
+                      00045 ; The lables following the directive are located in the respective .inc file.
+                      00046 ; See respective data sheet for additional information on configuration word.
+                      00047 
+                      00048 ;***** VARIABLE DEFINITIONS
+  0000000C            00049 w_temp        EQU     0x0C        ; variable used for context saving 
+  0000000D            00050 status_temp   EQU     0x0D        ; variable used for context saving
+  0000000E            00051 loopcount1    EQU     0x0E        ; Loop counter variable
+  0000000F            00052 loopcount2    EQU     0x0F        ; Loop counter variable
+  00000010            00053 counter       EQU     0x10        ; Counter for the Lookup Table
+                      00054    
+                      00055 ;**********************************************************************
+                      00056 RESET_VECTOR      CODE    0x0000  ; processor reset vector
+0000   2???           00057         goto    start             ; go to beginning of program
+                      00058 
+                      00059 ISR               CODE    0x0004  ; interrupt vector location
+                      00060 
+0004                  00061 Interrupt:
+                      00062 
+0004   008C           00063         movwf  w_temp             ; save off current W register contents
+0005   0803           00064         movf   STATUS,w           ; move status register into W register
+0006   008D           00065         movwf  status_temp        ; save off contents of STATUS register
+                      00066 
+                      00067 ;  Place ISR Here
+                      00068 
+0007   080D           00069         movf   status_temp,w      ; retrieve copy of STATUS register
+0008   0083           00070         movwf  STATUS             ; restore pre-isr STATUS register contents
+0009   0E8C           00071         swapf  w_temp,f
+000A   0E0C           00072         swapf  w_temp,w           ; restore pre-isr W register contents
+000B   0009           00073         retfie                    ; return from interrupt
+                      00074 
+                      00075 MAIN_PROGRAM    CODE
+                      00076 
+0000                  00077 start:
+0000   1683           00078         banksel TRISA
+0001   3010           00079         movlw   0x10
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0002   0085           00080         movwf   TRISA             ;Set Port RA4 to an input
+0003   3000           00081         movlw   0x00
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0004   0086           00082         movwf   TRISB             ;Set Ports RB0 - RB7 to outputs
+0005   1283           00083         banksel PORTB
+0006   3000           00084         movlw   0x00
+0007   0086           00085         movwf   PORTB             ;Make sure RB0 - RB7 are clear on startup (this was an issue)
+0008   0190           00086         clrf    counter           ;Clear the nutton press counter
+                      00087         
+0009   1A05           00088 press1: btfsc   PORTA,4           ;Test if RA4 is pressed
+000A   2???           00089         goto    press1
+000B   2???           00090         call    wait
+                      00091         
+000C   1E05           00092 press2: btfss   PORTA,4           ;Test if RA4 is released
+000D   2???           00093         goto    press2
+000E   2???           00094         call    wait
+MPASM 5.75  /HOME/ANDREW/MPLABXPROJECTS/LAB6   10-19-2017  20:13:51         PAGE  3
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+Message[305]: Using default destination of 1 (file).
+000F   0A90           00095         incf    counter           ;Increment the counter
+0010   0810           00096         movf    counter,0         ;Move the counter to the W register
+0011   390F           00097         andlw   0x0F              ;Use an AND to set the upper 4 bits to 0
+0012   2???           00098         call    table             ;Use the lookup table
+0013   0086           00099         movwf   PORTB
+0014   2???           00100         goto    press1
+                      00101         
+                      00102 ;Wait timer to deal with switch bounce (50ms - 20ms still had bounce)
+0015   3019           00103 wait:   movlw   0x19              ; Set outer loop to 125
+0016   008F           00104         movwf   loopcount2
+                      00105         
+0017   30C8           00106 wait1:  movlw   0xC8              ; Set inner loop to 200
+0018   008E           00107         movwf   loopcount1      
+                      00108         
+0019   0000           00109 loop:   nop
+001A   0000           00110         nop
+001B   0000           00111         nop
+001C   0000           00112         nop
+001D   0000           00113         nop
+001E   0000           00114         nop
+001F   0000           00115         nop
+Message[305]: Using default destination of 1 (file).
+0020   0B8E           00116         decfsz  loopcount1
+0021   2???           00117         goto    loop
+Message[305]: Using default destination of 1 (file).
+0022   0B8F           00118         decfsz  loopcount2
+0023   2???           00119         goto    wait1
+0024   0008           00120         return
+                      00121         
+                      00122 ;Lookup Table
+Message[305]: Using default destination of 1 (file).
+0025   0782           00123 table:  addwf   PCL
+0026   3400           00124         retlw   b'0000'
+0027   3401           00125         retlw   b'0001'
+0028   3403           00126         retlw   b'0011'
+0029   3402           00127         retlw   b'0010'
+002A   3406           00128         retlw   b'0110'
+002B   3407           00129         retlw   b'0111'
+002C   3405           00130         retlw   b'0101'
+002D   3404           00131         retlw   b'0100'
+002E   340C           00132         retlw   b'1100'
+002F   340D           00133         retlw   b'1101'
+0030   340F           00134         retlw   b'1111'
+0031   340E           00135         retlw   b'1110'
+0032   340A           00136         retlw   b'1010'
+0033   340B           00137         retlw   b'1011'
+0034   3409           00138         retlw   b'1001'
+0035   3408           00139         retlw   b'1000'
+                      00140         
+3FF3                  00141         END                       ; directive 'end of program'
+MPASM 5.75  /HOME/ANDREW/MPLABXPROJECTS/LAB6   10-19-2017  20:13:51         PAGE  4
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+C                                 00000000
+DC                                00000001
+EEADR                             00000009
+EECON1                            00000088
+EECON2                            00000089
+EEDATA                            00000008
+EEIE                              00000006
+EEIF                              00000004
+F                                 00000001
+FSR                               00000004
+GIE                               00000007
+INDF                              00000000
+INTCON                            0000000B
+INTE                              00000004
+INTEDG                            00000006
+INTF                              00000001
+IRP                               00000007
+Interrupt                         00000004
+NOT_PD                            00000003
+NOT_RBPU                          00000007
+NOT_TO                            00000004
+OPTION_REG                        00000081
+PCL                               00000002
+PCLATH                            0000000A
+PORTA                             00000005
+PORTB                             00000006
+PS0                               00000000
+PS1                               00000001
+PS2                               00000002
+PSA                               00000003
+RA0                               00000000
+RA1                               00000001
+RA2                               00000002
+RA3                               00000003
+RA4                               00000004
+RB0                               00000000
+RB1                               00000001
+RB2                               00000002
+RB3                               00000003
+RB4                               00000004
+RB5                               00000005
+RB6                               00000006
+RB7                               00000007
+RBIE                              00000003
+RBIF                              00000000
+RD                                00000000
+RP0                               00000005
+RP1                               00000006
+STATUS                            00000003
+T0CS                              00000005
+T0IE                              00000005
+T0IF                              00000002
+T0SE                              00000004
+MPASM 5.75  /HOME/ANDREW/MPLABXPROJECTS/LAB6   10-19-2017  20:13:51         PAGE  5
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+TMR0                              00000001
+TMR0IE                            00000005
+TMR0IF                            00000002
+TRISA                             00000085
+TRISA0                            00000000
+TRISA1                            00000001
+TRISA2                            00000002
+TRISA3                            00000003
+TRISA4                            00000004
+TRISB                             00000086
+TRISB0                            00000000
+TRISB1                            00000001
+TRISB2                            00000002
+TRISB3                            00000003
+TRISB4                            00000004
+TRISB5                            00000005
+TRISB6                            00000006
+TRISB7                            00000007
+W                                 00000000
+WR                                00000001
+WREN                              00000002
+WRERR                             00000003
+Z                                 00000002
+_CONFIG                           00002007
+_CP_OFF                           00003FFF
+_CP_ON                            0000000F
+_DEVID1                           00002006
+_FOSC_EXTRC                       00003FFF
+_FOSC_HS                          00003FFE
+_FOSC_LP                          00003FFC
+_FOSC_XT                          00003FFD
+_HS_OSC                           00003FFE
+_IDLOC0                           00002000
+_IDLOC1                           00002001
+_IDLOC2                           00002002
+_IDLOC3                           00002003
+_LP_OSC                           00003FFC
+_PWRTE_OFF                        00003FFF
+_PWRTE_ON                         00003FF7
+_RC_OSC                           00003FFF
+_WDTE_OFF                         00003FFB
+_WDTE_ON                          00003FFF
+_WDT_OFF                          00003FFB
+_WDT_ON                           00003FFF
+_XT_OSC                           00003FFD
+__16F84A                          00000001
+__DEBUG                           
+__MPLAB_DEBUGGER_SIMULATOR        1
+counter                           00000010
+loop                              00000019
+loopcount1                        0000000E
+loopcount2                        0000000F
+press1                            00000009
+MPASM 5.75  /HOME/ANDREW/MPLABXPROJECTS/LAB6   10-19-2017  20:13:51         PAGE  6
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+press2                            0000000C
+start                             00000000
+status_temp                       0000000D
+table                             00000025
+w_temp                            0000000C
+wait                              00000015
+wait1                             00000017
+
+Errors   :     0
+Warnings :     0 reported,     0 suppressed
+Messages :     6 reported,     0 suppressed
+
+

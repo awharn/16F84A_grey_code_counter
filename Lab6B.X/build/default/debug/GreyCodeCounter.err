@@ -1,0 +1,6 @@
+Message[302] /home/andrew/MPLABXProjects/Lab6B.X/GreyCodeCounter.asm 80 : Register in operand not in bank 0.  Ensure that bank bits are correct.
+Message[302] /home/andrew/MPLABXProjects/Lab6B.X/GreyCodeCounter.asm 82 : Register in operand not in bank 0.  Ensure that bank bits are correct.
+Message[305] /home/andrew/MPLABXProjects/Lab6B.X/GreyCodeCounter.asm 95 : Using default destination of 1 (file).
+Message[305] /home/andrew/MPLABXProjects/Lab6B.X/GreyCodeCounter.asm 116 : Using default destination of 1 (file).
+Message[305] /home/andrew/MPLABXProjects/Lab6B.X/GreyCodeCounter.asm 118 : Using default destination of 1 (file).
+Message[305] /home/andrew/MPLABXProjects/Lab6B.X/GreyCodeCounter.asm 123 : Using default destination of 1 (file).
